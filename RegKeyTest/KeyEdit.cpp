@@ -12,7 +12,7 @@ KeyEdit::~KeyEdit()
 {
 } 
 
-void KeyEdit::keyPeek() {
+bool KeyEdit::keyPeek() {
 
 	if (Registry::CurrentUser->OpenSubKey(this->subKeyName) != nullptr)
 	{
@@ -69,9 +69,22 @@ void KeyEdit::keyPeek() {
 		
 		if (day != dayParsed)
 		{
-			std::cout << "hoho" << std::endl;
-		}
+			regKey = nullptr;
 
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+		
+		//regKey->Close();
+
+	}
+	else
+	{
+		Console::WriteLine("No Key to print");
+		return false;
 	}
 
 }
@@ -80,6 +93,7 @@ void KeyEdit::createKey() {
 	// Create a subkey named Test9999 under HKEY_CURRENT_USER.
 	RegistryKey ^ rk = nullptr;
 	rk = Registry::CurrentUser->OpenSubKey(this->subKeyName);
+	//Calling close on system keys is shit. they never close
 
 	if (rk == nullptr)
 	{
@@ -87,47 +101,58 @@ void KeyEdit::createKey() {
 		regKey = Registry::CurrentUser->CreateSubKey(this->subKeyName);
 
 		std::cout << "Key created" << std::endl;
-	}
 
-	time_t now = time(0);
-
+		time_t now = time(0);
 
 
-	tm *ltm = localtime(&now);
 
-	int year = 1900 + ltm->tm_year;
-	int month = 1 + ltm->tm_mon;
-	int day = ltm->tm_mday;
+		tm *ltm = localtime(&now);
 
-	//std::string smash;
+		int year = 1900 + ltm->tm_year;
+		int month = 1 + ltm->tm_mon;
+		int day = ltm->tm_mday;
 
-	//smash = year + "/" + month + "/" + day;
+		//std::string smash;
 
-	// Create two subkeys under HKEY_CURRENT_USER\Panda.
-	//regKey->CreateSubKey("TestName")->Close(); 
-	testSettings = regKey->CreateSubKey("dateKeys");
+		//smash = year + "/" + month + "/" + day;
 
-	
-	// Create data for the TestSettings subkey.
-	testSettings->SetValue("year", year);
-	testSettings->SetValue("month", month);
-	testSettings->SetValue("day", day);
-	testSettings->Close();
-	std::cout << "SubKey created" << std::endl;
-	// Print the information from the Test9999 subkey.
-	Console::WriteLine("There are {0} subkeys under ", this->subKeyName, regKey->SubKeyCount.ToString());
-	array<String^>^subKeyNames = regKey->GetSubKeyNames();
-	for (int i = 0; i < subKeyNames->Length; i++)
-	{
-		RegistryKey ^ tempKey = regKey->OpenSubKey(subKeyNames[i]);
-		Console::WriteLine("\nThere are {0} values for {1}.", tempKey->ValueCount.ToString(), tempKey->Name);
-		array<String^>^valueNames = tempKey->GetValueNames();
-		for (int j = 0; j < valueNames->Length; j++)
+		// Create two subkeys under HKEY_CURRENT_USER\Panda.
+		//regKey->CreateSubKey("TestName")->Close(); 
+
+
+		if (regKey->OpenSubKey("dateKeys") == nullptr)
 		{
-			Console::WriteLine("{0,-8}: {1}", valueNames[j], tempKey->GetValue(valueNames[j])->ToString());
+			testSettings = regKey->CreateSubKey("dateKeys");
 
+
+			// Create data for the TestSettings subkey.
+			testSettings->SetValue("year", year);
+			testSettings->SetValue("month", month);
+			testSettings->SetValue("day", day);
+			//testSettings->Close();
+			std::cout << "SubKey created" << std::endl;
+			// Print the information from the Test9999 subkey.
+			Console::WriteLine("There are {0} subkeys under ", this->subKeyName, regKey->SubKeyCount.ToString());
+			array<String^>^subKeyNames = regKey->GetSubKeyNames();
+			for (int i = 0; i < subKeyNames->Length; i++)
+			{
+				RegistryKey ^ tempKey = regKey->OpenSubKey(subKeyNames[i]);
+				Console::WriteLine("\nThere are {0} values for {1}.", tempKey->ValueCount.ToString(), tempKey->Name);
+				array<String^>^valueNames = tempKey->GetValueNames();
+				for (int j = 0; j < valueNames->Length; j++)
+				{
+					Console::WriteLine("{0,-8}: {1}", valueNames[j], tempKey->GetValue(valueNames[j])->ToString());
+
+				}
+			}
 		}
+
 	}
+	else
+	{
+		Console::WriteLine("Key in place");
+	}
+	//rk->Close();
 } 
 
 void KeyEdit::removeKey() {
@@ -141,16 +166,20 @@ void KeyEdit::removeKey() {
 	//testSettings->Close();
 	
 	// Delete or close the new subkey.
-	Console::Write("\nDelete newly created re gistry key? (Y/N) ");
-	if (Char::ToUpper(Convert::ToChar(Console::Read())) == 'Y')
+	if (Registry::CurrentUser->OpenSubKey(this->subKeyName) != nullptr)
 	{
-		Registry::CurrentUser->DeleteSubKeyTree(this->subKeyName);
-		//Console::WriteLine("\nRegistry key {0} deleted.", regKey->Name);
+		Console::Write("\nDelete newly created re gistry key? (Y/N) ");
+		std::string te;
+		std::cin >> te;
+		if (te == "Y")//Char::ToUpper(Convert::ToChar(Console::Read())) == 'Y')
+		{
+			Registry::CurrentUser->DeleteSubKeyTree(this->subKeyName);
+			Console::WriteLine("Key del");
+			//Console::WriteLine("\nRegistry key {0} deleted.", regKey->Name);
+		}
 	}
 	else
 	{
-		//Console::WriteLine("\nRegistry key {0} closed.", regKey->ToString());
-		regKey->Close();
+		std::cout << "No Sub Key to delete" << std::endl;
 	}
-
 }

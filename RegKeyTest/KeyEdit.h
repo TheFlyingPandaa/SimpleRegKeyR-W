@@ -16,7 +16,7 @@ public:
 	void createKey();
 	void removeKey();
 
-	void keyPeek();
+	bool keyPeek();
 
 
 private:
