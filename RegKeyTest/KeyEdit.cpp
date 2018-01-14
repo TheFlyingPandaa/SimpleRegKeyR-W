@@ -89,6 +89,22 @@ bool KeyEdit::keyPeek() {
 
 }
 
+void KeyEdit::customCreate(String ^ subKey) {
+
+	if (Registry::CurrentUser->OpenSubKey(this->subKeyName) == nullptr)
+	{
+		regKey = Registry::CurrentUser->CreateSubKey(this->subKeyName);
+
+		if (regKey->OpenSubKey(subKey) == nullptr)
+		{
+			RegistryKey ^ tempKey = regKey->CreateSubKey(subKey);
+			
+		}
+
+	}
+
+}
+
 void KeyEdit::createKey() {
 	// Create a subkey named Test9999 under HKEY_CURRENT_USER.
 	RegistryKey ^ rk = nullptr;

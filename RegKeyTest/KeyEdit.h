@@ -16,6 +16,8 @@ public:
 	void createKey();
 	void removeKey();
 
+	void customCreate(String ^ subKey);
+
 	bool keyPeek();
 
 
